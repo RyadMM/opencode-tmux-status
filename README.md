@@ -1,5 +1,7 @@
 # opencode-tmux-status
 
+**[Français](README.fr.md)**
+
 **One glance at your tmux status bar tells you what every [opencode](https://opencode.ai) agent is doing: working, blocked waiting for your input, or finished — no window-switching, no polling, no dependencies.**
 
 ## Prerequisites
@@ -65,20 +67,27 @@ tmux set-option -w @oc-sound-done 1   # also beep once when a turn finishes (def
 
 ## How it works
 
-```
-opencode plugin                tmux                          tmux status line
-──────────────► set-option -w @opencode-state  ◄────────────  window-status-format
-  permission.asked → wait      (+ @opencode-pane,              pure tmux formats,
-  question tool   → wait         @opencode-pid)                 zero shell calls
-  session.status   → busy
-  session.idle     → done
-  session.error    → error
-```
+A three-step pipeline — opencode emits an event, the plugin writes a window option, tmux renders the icon.
+
+**1. Events → states**
+
+| opencode event | State | When |
+|----------------|:-----:|------|
+| `permission.asked` | `wait` | tool needs your approval |
+| `question` tool *(running)* | `wait` | plan-mode / clarifying question |
+| `session.status busy` | `busy` | agent is working |
+| `session.status idle` | `done` | turn finished |
+| `session.error` | `error` | something went wrong |
+
+**2. Plugin → tmux.** On a state change the plugin writes `@opencode-state`, `@opencode-pane` and `@opencode-pid` as window options.
+
+**3. tmux → status bar.** `window-status-format` renders those options as a colored icon next to each window name. Pure tmux formats — zero shell calls, instant redraw.
+
+**Design notes**
 
 - **State changes only.** One agent turn emits 180+ bus events; the plugin dedupes, costing ~4 `tmux set-option` calls per turn. Everything else is a string comparison.
-- **Window options + pure formats.** No polling, no shell command per window, instant redraws.
 - **PID-based staleness sweep.** A `pane-focus-in` hook clears a window's icon once its opencode process is gone — checking the PID rather than `pane_current_command`, which reads as the running bash tool mid-turn and would wipe live state.
-- The plugin tracks only the session you're talking to; hidden sessions (title generation, summaries, subagents) never flicker the icons. `wait` also triggers on the blocking `question` tool (plan-mode clarifying questions), so "agent needs your input" is detected even though it's a tool call, not a permission.
+- The plugin tracks only the session you're talking to; hidden sessions (title generation, summaries, subagents) never flicker the icons. `wait` also triggers on the blocking `question` tool, so "agent needs your input" is detected even though it's a tool call, not a permission.
 
 ## Troubleshooting
 
