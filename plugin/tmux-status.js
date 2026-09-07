@@ -4,6 +4,7 @@
 //   busy | wait (needs your input) | done | error
 // Zero dependencies. No-ops outside tmux. Never throws into the event bus.
 import fs from "node:fs"
+import { spawn } from "node:child_process"
 
 const LOG = "/tmp/oc-tmux-status.log"
 const LOG_MAX = 262144
@@ -16,6 +17,7 @@ export const TmuxStatusPlugin = async ({ $ }) => {
 
   let last = null
   let session = null
+  let soundEnabled = null
 
   const note = (line) => {
     try {
@@ -24,18 +26,37 @@ export const TmuxStatusPlugin = async ({ $ }) => {
     } catch {}
   }
 
-  // Spawns tmux only on state CHANGES: streaming fires message.part.delta per
-  // token and session.status busy per loop step, but the dedup cache means a
-  // full turn costs ~2-6 tiny tmux invocations total.
+  const bell = async (state) => {
+    if (soundEnabled === null) {
+      try {
+        const r = await $`tmux show-option -wv -t ${pane} @oc-sound`.quiet()
+        soundEnabled = r.stdout.toString().trim() !== "0"
+      } catch {
+        soundEnabled = true
+      }
+    }
+    if (!soundEnabled) return
+    try {
+      if (state === "wait") {
+        spawn("osascript", ["-e", "beep 2"], { detached: true, stdio: "ignore" }).unref()
+      } else if (state === "error") {
+        spawn("osascript", ["-e", "beep 3"], { detached: true, stdio: "ignore" }).unref()
+      } else if (state === "done") {
+        spawn("osascript", ["-e", "beep 1"], { detached: true, stdio: "ignore" }).unref()
+      }
+    } catch {}
+  }
+
   const setState = async (state, why) => {
     if (state === last) return
     note(`${state} <- ${why}`)
     try {
       const r = await $`tmux set-option -w -t ${pane} @opencode-state ${state} \; set-option -w -t ${pane} @opencode-pane ${pane} \; set-option -w -t ${pane} @opencode-pid ${pid}`.quiet()
       if (r.exitCode !== 0) throw new Error(`tmux rc=${r.exitCode}`)
-      last = state // commit only after confirmed write
+      last = state
+      bell(state)
     } catch (e) {
-      last = null  // reset so the next event retries
+      last = null
       note(`write FAILED: ${e}`)
     }
   }
@@ -43,14 +64,15 @@ export const TmuxStatusPlugin = async ({ $ }) => {
   return {
     event: async ({ event }) => {
       const p = event.properties ?? {}
-      // permission.asked / session.error from ANY session in the process
-      // (including subagents) affect this window's turn — bypass the lock.
+      const noisy = new Set(["message.part.delta", "message.updated"])
+      if (!noisy.has(event.type)) {
+        const keys = Object.keys(p).length ? JSON.stringify(p).slice(0, 200) : ""
+        note(`>> ${event.type} ${keys}`)
+      }
+
       if (event.type === "permission.asked") return setState("wait", "permission.asked")
       if (event.type === "permission.replied") return setState("busy", "permission.replied")
       if (event.type === "session.error") return setState("error", "session.error")
-      // Arm on the first user message: hidden sessions (title generation,
-      // summaries, subagents) also emit events in-process, so track only the
-      // session the user is actually talking to.
       if (event.type === "message.updated" && p.info?.role === "user") {
         session = p.sessionID
         return
