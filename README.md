@@ -43,10 +43,11 @@ Colors and glyphs live in `~/.config/tmux/opencode-status.tmux` — defaults are
 
 ### Notifications
 
-State changes play a short macOS system beep (one for `done`, two for `wait`, three for `error`). Disable per window, or pass it inline:
+State changes play a short macOS system beep (two for `wait`, three for `error`). Tune per window:
 
 ```sh
-tmux set-option -w @oc-sound 0        # silence a window
+tmux set-option -w @oc-sound 0        # silence a window (default: on)
+tmux set-option -w @oc-sound-done 1   # also beep once when a turn finishes (default: off)
 ```
 
 ### Environment variables

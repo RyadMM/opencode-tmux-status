@@ -8,6 +8,7 @@ import { spawn } from "node:child_process"
 
 const LOG = "/tmp/oc-tmux-status.log"
 const LOG_MAX = 262144
+const VERSION = "1.0.0"
 const DEBUG = process.env.OPENCODE_TMUX_STATUS_DEBUG === "1"
 
 export const TmuxStatusPlugin = async ({ $ }) => {
@@ -18,6 +19,7 @@ export const TmuxStatusPlugin = async ({ $ }) => {
   let last = null
   let session = null
   let soundEnabled = null
+  let soundDone = null
 
   const note = (line) => {
     try {
@@ -25,6 +27,8 @@ export const TmuxStatusPlugin = async ({ $ }) => {
       fs.appendFileSync(LOG, `${new Date().toISOString().slice(11, 19)} ${pane} ${line}\n`)
     } catch {}
   }
+
+  note(`init v${VERSION}`)
 
   const bell = async (state) => {
     if (process.env.OPENCODE_TMUX_STATUS_NO_BELL === "1") return
@@ -38,12 +42,20 @@ export const TmuxStatusPlugin = async ({ $ }) => {
       }
     }
     if (!soundEnabled) return
+    if (soundDone === null) {
+      try {
+        const r = await $`tmux show-option -wv -t ${pane} @oc-sound-done`.quiet()
+        soundDone = r.stdout.toString().trim() !== "0"
+      } catch {
+        soundDone = false
+      }
+    }
     try {
       if (state === "wait") {
         spawn("osascript", ["-e", "beep 2"], { detached: true, stdio: "ignore" }).unref()
       } else if (state === "error") {
         spawn("osascript", ["-e", "beep 3"], { detached: true, stdio: "ignore" }).unref()
-      } else if (state === "done") {
+      } else if (state === "done" && soundDone) {
         spawn("osascript", ["-e", "beep 1"], { detached: true, stdio: "ignore" }).unref()
       }
     } catch {}
