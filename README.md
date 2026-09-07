@@ -1,26 +1,17 @@
 # opencode-tmux-status
 
-Live [opencode](https://opencode.ai) agent state, in your tmux status bar.
-
-Every window running opencode gets a colored icon next to its name, so a single glance tells you which agents are working, which finished, and which are blocked waiting for your answer — no window-switching required.
+**One glance at your tmux status bar tells you what every [opencode](https://opencode.ai) agent is doing: working, blocked waiting for your input, or finished — no window-switching, no polling, no dependencies.**
 
 ```
-[1] 0:zsh  [󰐋] 1:api  [󰁨] 2:frontend  [󰄬] 3:docs
-        │         │          │             │
-       idle    working   NEEDS INPUT     done
+[󰐋] 1:api   [󰁨] 2:frontend   [󰄬] 3:docs   4:shell
+  working    NEEDS INPUT       done        untouched
 ```
 
-## States
+## Prerequisites
 
-| Icon | State | Meaning |
-|:----:|-------|---------|
-| 󰐋 | `busy` | Agent is working |
-| 󰁨 | `wait` | Agent is blocked on your input (permission prompt, question) |
-| 󰄬 | `done` | Turn finished |
-| 󰅛 | `error` | Session error |
-| | | No icon — no opencode activity in that window |
-
-Windows with several opencode panes show the state of the last-active one.
+- tmux ≥ 3.2
+- [opencode](https://opencode.ai) ≥ 1.18
+- A Nerd Font is *not* required — icons fall back automatically (see [Usage](#usage))
 
 ## Install
 
@@ -30,11 +21,34 @@ cd opencode-tmux-status && ./install.sh
 tmux source-file ~/.config/tmux/tmux.conf
 ```
 
-Then restart your opencode sessions — plugins load at startup.
+Restart your opencode sessions afterward — plugins load at startup.
 
-**Requirements:** tmux ≥ 3.2 · opencode ≥ 1.18 · [Nerd Font](https://www.nerdfonts.com)
+The installer copies the plugin to `~/.config/opencode/plugins/`, the tmux files to `~/.config/tmux/`, and appends one `source-file` line to your `tmux.conf`. Nothing else is touched; removing it is a `git rm` and one deleted line.
 
-The installer drops the plugin in `~/.config/opencode/plugins/`, the tmux files in `~/.config/tmux/`, and appends one `source-file` line to your `tmux.conf`. No other changes; `git rm`-grade uninstall.
+## Usage
+
+Start opencode in any window and send it a message. Its window gets a live icon in the status bar:
+
+| Icon | Nerd Font | Unicode | ASCII | State | Meaning |
+|:----:|:---------:|:-------:|:-----:|-------|---------|
+| 󰐋 | `󰐋` | `⚡` | `~` | `busy` | Agent is working |
+| 󰁨 | `󰁨` | `⚑` | `?` | `wait` | Agent needs your input |
+| 󰄬 | `󰄬` | `✓` | `.` | `done` | Turn finished |
+| 󰅛 | `󰅛` | `✗` | `!` | `error` | Session error |
+
+The icon set is chosen at startup: Nerd Font glyphs if one is installed, plain unicode otherwise. Pin a set in your `tmux.conf` if detection guesses wrong:
+
+```tmux
+set -g @oc-icons "unicode"   # or "nerd" / "ascii"
+```
+
+Colors and glyphs live in `~/.config/tmux/opencode-status.tmux` — defaults are tuned for tmux's stock green bar.
+
+Diagnostics:
+
+```sh
+~/.config/tmux/scripts/opencode-status-doctor.sh   # per-window states, liveness, log tail
+```
 
 ## How it works
 
@@ -47,42 +61,23 @@ opencode plugin                tmux                          tmux status line
   session.error    → error
 ```
 
-Three deliberate design choices:
-
-- **State changes only.** A single turn emits 180+ bus events (per-token deltas, per-step status updates). The plugin dedupes, so that turn costs ~4 `tmux set-option` calls. Unmapped events cost one string comparison.
-- **Window options + pure formats.** The status bar reads `@opencode-state` with built-in tmux format conditionals — no polling, no shell command per window, updates redraw instantly.
-- **PID-based staleness sweep.** A `pane-focus-in` hook clears a window's icon when its opencode process is gone. It checks the recorded PID, not `pane_current_command` — during bash tool calls the pane's foreground process is the tool itself, and a command-based check would wipe live state mid-turn.
-
-The plugin also locks onto the session that last received a user message, so hidden in-process sessions (title generation, summaries, subagents) never flicker your icons.
-
-## Customize
-
-Edit `~/.config/tmux/opencode-status.tmux`:
-
-```tmux
-set -g @oc-busy  "󰐋"            # any Nerd Font glyph
-set -g @oc-c-busy  "colour231"  # any tmux color (name or colourNNN)
-```
-
-Defaults are tuned for tmux's stock green status bar.
+- **State changes only.** One agent turn emits 180+ bus events; the plugin dedupes, costing ~4 `tmux set-option` calls per turn. Everything else is a string comparison.
+- **Window options + pure formats.** No polling, no shell command per window, instant redraws.
+- **PID-based staleness sweep.** A `pane-focus-in` hook clears a window's icon once its opencode process is gone — checking the PID rather than `pane_current_command`, which reads as the running bash tool mid-turn and would wipe live state.
+- The plugin tracks only the session you're talking to; hidden sessions (title generation, summaries, subagents) never flicker the icons.
 
 ## Troubleshooting
 
-```sh
-~/.config/tmux/scripts/opencode-status-doctor.sh
-```
-
-Prints every window's state, whether its opencode process is alive, and the last transitions.
-
-- **No icon** — the session predates the plugin (restart opencode), or you haven't sent a message yet.
+- **No icon** — the session predates the plugin (restart opencode), or no message sent yet.
 - **Icon stuck** — focus that window; the sweep clears it if the agent is gone.
-- **Nothing anywhere** — check the plugin loaded: state transitions are logged to `/tmp/oc-tmux-status.log`.
+- **Wrong glyphs** — pin `@oc-icons` as above.
+- **Nothing anywhere** — transitions are logged to `/tmp/oc-tmux-status.log`; run the doctor.
 
 ## Limitations
 
-- Icons appear only for windows of the tmux session you're attached to (standard window-list behavior).
-- An opencode pane moved to another window leaves a stale icon on the old one until you focus it.
-- Requires tmux with Nerd Font glyphs; plain-terminal users can swap in ASCII characters.
+- Icons show for windows of the tmux session you're attached to (standard window-list behavior).
+- Several opencode panes in one window: last-active wins.
+- A pane moved to another window leaves a stale icon on the old one until you focus it.
 
 ## License
 

@@ -7,12 +7,17 @@
 # each window name. No icon = no opencode activity in that window.
 # Requires a Nerd Font for the default glyphs.
 
-# --- customize here (any Nerd Font glyphs / tmux colors) ----------------------
+# --- customize here ------------------------------------------------------------
+# Icon set: auto-detected at startup (Nerd Font if installed, unicode otherwise).
+# Pin one manually if detection guesses wrong for your terminal:
+#   set -g @oc-icons "nerd"     # 󰐋 󰁨 󰄬 󰅛  (Nerd Font)
+#   set -g @oc-icons "unicode"  # ⚡ ⚑ ✓ ✗  (any modern terminal)
+#   set -g @oc-icons "ascii"    # ~ ? . !  (maximum compatibility)
 set -g @oc-busy  "󰐋"        # agent working
 set -g @oc-wait  "󰁨"        # needs your input
 set -g @oc-done  "󰄬"        # turn finished
 set -g @oc-error "󰅛"        # session error
-# Defaults below contrast against tmux's green status bar; adjust to your theme.
+# Colors; defaults contrast against tmux's green status bar.
 set -g @oc-c-busy  "colour231"   # white
 set -g @oc-c-wait  "colour201"   # bright magenta
 set -g @oc-c-done  "colour16"    # black
@@ -29,6 +34,9 @@ set -g window-status-current-format "#{?#{==:#{@opencode-state},busy},#[fg=#{@oc
 # while an agent works, and would falsely clear live state.
 set -g @oc-clear-script "~/.config/tmux/scripts/opencode-clear.sh"
 set-hook -gw pane-focus-in 'run -b "#{@oc-clear-script} #{@opencode-pane} #{@opencode-pid} #{hook_pane}"'
+
+# Resolve icon set (auto-detect Nerd Font / fallback) and refine the @oc-* glyphs
+run -b '~/.config/tmux/scripts/opencode-icons.sh'
 
 # Fallback refresh; state changes also redraw the status line instantly
 set -g status-interval 5

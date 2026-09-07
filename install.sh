@@ -12,9 +12,9 @@ TMUX_DIR="$HOME/.config/tmux"
 mkdir -p "$PLUG_DIR" "$TMUX_DIR/scripts"
 cp "$REPO/plugin/tmux-status.js" "$PLUG_DIR/tmux-status.js"
 cp "$REPO/tmux/scripts/opencode-clear.sh" "$TMUX_DIR/scripts/opencode-clear.sh"
-chmod +x "$TMUX_DIR/scripts/opencode-clear.sh"
+cp "$REPO/tmux/scripts/opencode-icons.sh" "$TMUX_DIR/scripts/opencode-icons.sh"
 cp "$REPO/tmux/scripts/opencode-status-doctor.sh" "$TMUX_DIR/scripts/opencode-status-doctor.sh"
-chmod +x "$TMUX_DIR/scripts/opencode-status-doctor.sh"
+chmod +x "$TMUX_DIR/scripts/"*.sh
 cp "$REPO/tmux/opencode-status.tmux" "$TMUX_DIR/opencode-status.tmux"
 
 CONF="$HOME/.config/tmux/tmux.conf"
