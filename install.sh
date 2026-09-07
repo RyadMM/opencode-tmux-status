@@ -31,4 +31,5 @@ echo "  $TMUX_DIR/opencode-status.tmux (+ scripts/)"
 echo "  $CONF -> $LINE"
 echo
 echo "Next: restart tmux (or: tmux source-file \"$CONF\") and restart your"
-echo "opencode sessions so the plugin loads. Requires a Nerd Font for icons."
+echo "opencode sessions so the plugin loads. Icons auto-detect Nerd Font; set"
+echo "@oc-icons to nerd/unicode/ascii to override."

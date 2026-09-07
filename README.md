@@ -13,7 +13,7 @@
 ```sh
 git clone https://github.com/RyadMM/opencode-tmux-status.git
 cd opencode-tmux-status && ./install.sh
-tmux source-file ~/.config/tmux/tmux.conf
+tmux source-file ~/.config/tmux/tmux.conf   # or ~/.tmux.conf
 ```
 
 Restart your opencode sessions afterward — plugins load at startup.
@@ -41,7 +41,22 @@ set -g @oc-icons "unicode"   # or "nerd" / "ascii"
 
 Colors and glyphs live in `~/.config/tmux/opencode-status.tmux` — defaults are tuned for tmux's stock green bar.
 
-Diagnostics:
+### Notifications
+
+State changes play a short macOS system beep (one for `done`, two for `wait`, three for `error`). Disable per window, or pass it inline:
+
+```sh
+tmux set-option -w @oc-sound 0        # silence a window
+```
+
+### Environment variables
+
+| Variable | Effect |
+|----------|--------|
+| `OPENCODE_TMUX_STATUS_NO_BELL=1` | Disable all beep notifications |
+| `OPENCODE_TMUX_STATUS_DEBUG=1` | Verbose event logging to `/tmp/oc-tmux-status.log` |
+
+### Diagnostics
 
 ```sh
 ~/.config/tmux/scripts/opencode-status-doctor.sh   # per-window states, liveness, log tail

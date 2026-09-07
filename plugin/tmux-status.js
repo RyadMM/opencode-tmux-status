@@ -28,6 +28,7 @@ export const TmuxStatusPlugin = async ({ $ }) => {
 
   const bell = async (state) => {
     if (process.env.OPENCODE_TMUX_STATUS_NO_BELL === "1") return
+    if (process.platform !== "darwin") return
     if (soundEnabled === null) {
       try {
         const r = await $`tmux show-option -wv -t ${pane} @oc-sound`.quiet()
