@@ -185,6 +185,47 @@ describe("TmuxStatusPlugin", () => {
     })
   })
 
+  describe("question tool", () => {
+    function qPart(status, extra = {}) {
+      return ev("message.part.updated", { part: { type: "tool", tool: "question", state: { status }, ...extra } })
+    }
+
+    it("running → wait (needs input)", async () => {
+      const m$ = mock$()
+      const p = await TmuxStatusPlugin({ $: m$.fn })
+      await p.event(ev("message.updated", { info: { role: "user" }, sessionID: "s1" }))
+      await p.event(qPart("running"))
+      assert.equal(getState(m$.calls[0]), "wait")
+    })
+
+    it("completed → busy (answered, agent resumes)", async () => {
+      const m$ = mock$()
+      const p = await TmuxStatusPlugin({ $: m$.fn })
+      await p.event(ev("message.updated", { info: { role: "user" }, sessionID: "s1" }))
+      await p.event(qPart("running"))
+      await p.event(qPart("completed"))
+      assert.equal(m$.calls.length, 2, "wait then busy")
+      assert.equal(getState(m$.calls[0]), "wait")
+      assert.equal(getState(m$.calls[1]), "busy")
+    })
+
+    it("bypasses session filter (subagent questions)", async () => {
+      const m$ = mock$()
+      const p = await TmuxStatusPlugin({ $: m$.fn })
+      await p.event(ev("message.updated", { info: { role: "user" }, sessionID: "s1" }))
+      await p.event(qPart("running", { sessionID: "s2" }))
+      assert.equal(getState(m$.calls[0]), "wait")
+    })
+
+    it("ignores non-question tool parts", async () => {
+      const m$ = mock$()
+      const p = await TmuxStatusPlugin({ $: m$.fn })
+      await p.event(ev("message.updated", { info: { role: "user" }, sessionID: "s1" }))
+      await p.event(ev("message.part.updated", { part: { type: "tool", tool: "bash", state: { status: "running" } }, sessionID: "s1" }))
+      assert.equal(m$.calls.length, 0, "bash tool running is not a wait state")
+    })
+  })
+
   describe("deduplication", () => {
     it("suppresses repeated same-state", async () => {
       const m$ = mock$()

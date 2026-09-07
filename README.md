@@ -69,7 +69,8 @@ tmux set-option -w @oc-sound-done 1   # also beep once when a turn finishes (def
 opencode plugin                tmux                          tmux status line
 ──────────────► set-option -w @opencode-state  ◄────────────  window-status-format
   permission.asked → wait      (+ @opencode-pane,              pure tmux formats,
-  session.status   → busy       @opencode-pid)                 zero shell calls
+  question tool   → wait         @opencode-pid)                 zero shell calls
+  session.status   → busy
   session.idle     → done
   session.error    → error
 ```
@@ -77,7 +78,7 @@ opencode plugin                tmux                          tmux status line
 - **State changes only.** One agent turn emits 180+ bus events; the plugin dedupes, costing ~4 `tmux set-option` calls per turn. Everything else is a string comparison.
 - **Window options + pure formats.** No polling, no shell command per window, instant redraws.
 - **PID-based staleness sweep.** A `pane-focus-in` hook clears a window's icon once its opencode process is gone — checking the PID rather than `pane_current_command`, which reads as the running bash tool mid-turn and would wipe live state.
-- The plugin tracks only the session you're talking to; hidden sessions (title generation, summaries, subagents) never flicker the icons.
+- The plugin tracks only the session you're talking to; hidden sessions (title generation, summaries, subagents) never flicker the icons. `wait` also triggers on the blocking `question` tool (plan-mode clarifying questions), so "agent needs your input" is detected even though it's a tool call, not a permission.
 
 ## Troubleshooting
 

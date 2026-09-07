@@ -8,7 +8,7 @@ import { spawn } from "node:child_process"
 
 const LOG = "/tmp/oc-tmux-status.log"
 const LOG_MAX = 262144
-const VERSION = "1.0.0"
+const VERSION = "1.1.0"
 const DEBUG = process.env.OPENCODE_TMUX_STATUS_DEBUG === "1"
 
 export const TmuxStatusPlugin = async ({ $ }) => {
@@ -81,6 +81,15 @@ export const TmuxStatusPlugin = async ({ $ }) => {
       if (event.type === "permission.asked") return setState("wait", "permission.asked")
       if (event.type === "permission.replied") return setState("busy", "permission.replied")
       if (event.type === "session.error") return setState("error", "session.error")
+      // The question tool blocks mid-turn waiting for user input (plan-mode
+      // clarifying questions). Bypass the session filter like permission.asked
+      // so subagent questions also flip the icon. state.status is "running"
+      // while waiting, "completed"/"error" once answered.
+      if (event.type === "message.part.updated" && p.part?.tool === "question") {
+        const st = p.part.state?.status
+        if (st === "running") return setState("wait", "question.asked")
+        if (st === "completed" || st === "error") return setState("busy", "question.answered")
+      }
       if (event.type === "message.updated" && p.info?.role === "user") {
         session = p.sessionID
         return

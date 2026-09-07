@@ -1,6 +1,6 @@
 {
   "name": "opencode-tmux-status",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Live agent-state icons (busy / wait / done / error) for the tmux status bar",
   "license": "MIT",
   "type": "module",
