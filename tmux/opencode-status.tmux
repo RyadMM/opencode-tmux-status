@@ -25,10 +25,8 @@ set -g @oc-c-done  "colour16"    # black
 set -g @oc-c-error "colour196"   # bright red
 
 # --- rendering (no shell, no polling: pure format + instant redraw) -----------
-# Icon renders AFTER "number:name"; the leading space lives in each icon branch
-# so an inactive window has no trailing space. Color resets via #[fg=default].
-set -g window-status-format "#I:#W#{?#{==:#{@opencode-state},busy}, #[fg=#{@oc-c-busy}]#{@oc-busy}#[fg=default],#{?#{==:#{@opencode-state},wait}, #[fg=#{@oc-c-wait}]#{@oc-wait}#[fg=default],#{?#{==:#{@opencode-state},error}, #[fg=#{@oc-c-error}]#{@oc-error}#[fg=default],#{?#{==:#{@opencode-state},done}, #[fg=#{@oc-c-done}]#{@oc-done}#[fg=default],}}}}"
-set -g window-status-current-format "#I:#W#{?window_flags,#{window_flags}, }#{?#{==:#{@opencode-state},busy}, #[fg=#{@oc-c-busy}]#{@oc-busy}#[fg=default],#{?#{==:#{@opencode-state},wait}, #[fg=#{@oc-c-wait}]#{@oc-wait}#[fg=default],#{?#{==:#{@opencode-state},error}, #[fg=#{@oc-c-error}]#{@oc-error}#[fg=default],#{?#{==:#{@opencode-state},done}, #[fg=#{@oc-c-done}]#{@oc-done}#[fg=default],}}}}"
+set -g window-status-format "#{?#{==:#{@opencode-state},busy},#[fg=#{@oc-c-busy}]#{@oc-busy}#[fg=default] ,#{?#{==:#{@opencode-state},wait},#[fg=#{@oc-c-wait}]#{@oc-wait}#[fg=default] ,#{?#{==:#{@opencode-state},error},#[fg=#{@oc-c-error}]#{@oc-error}#[fg=default] ,#{?#{==:#{@opencode-state},done},#[fg=#{@oc-c-done}]#{@oc-done}#[fg=default] ,}}}}#I:#W"
+set -g window-status-current-format "#{?#{==:#{@opencode-state},busy},#[fg=#{@oc-c-busy}]#{@oc-busy}#[fg=default] ,#{?#{==:#{@opencode-state},wait},#[fg=#{@oc-c-wait}]#{@oc-wait}#[fg=default] ,#{?#{==:#{@opencode-state},error},#[fg=#{@oc-c-error}]#{@oc-error}#[fg=default] ,#{?#{==:#{@opencode-state},done},#[fg=#{@oc-c-done}]#{@oc-done}#[fg=default] ,}}}}#I:#W#{?window_flags,#{window_flags}, }"
 
 # --- stale-state sweep ---------------------------------------------------------
 # When you focus a window whose recorded opencode process is gone (agent quit
