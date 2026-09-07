@@ -27,6 +27,7 @@ export const TmuxStatusPlugin = async ({ $ }) => {
   }
 
   const bell = async (state) => {
+    if (process.env.OPENCODE_TMUX_STATUS_NO_BELL === "1") return
     if (soundEnabled === null) {
       try {
         const r = await $`tmux show-option -wv -t ${pane} @oc-sound`.quiet()
@@ -64,12 +65,6 @@ export const TmuxStatusPlugin = async ({ $ }) => {
   return {
     event: async ({ event }) => {
       const p = event.properties ?? {}
-      const noisy = new Set(["message.part.delta", "message.updated"])
-      if (!noisy.has(event.type)) {
-        const keys = Object.keys(p).length ? JSON.stringify(p).slice(0, 200) : ""
-        note(`>> ${event.type} ${keys}`)
-      }
-
       if (event.type === "permission.asked") return setState("wait", "permission.asked")
       if (event.type === "permission.replied") return setState("busy", "permission.replied")
       if (event.type === "session.error") return setState("error", "session.error")
