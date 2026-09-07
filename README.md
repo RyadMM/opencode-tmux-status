@@ -1,5 +1,8 @@
 # opencode-tmux-status
 
+<img width="460" height="30" alt="image" src="https://github.com/user-attachments/assets/c8285559-6576-4c03-b8b9-2a1d45fc0425" />
+
+
 **[Français](README.fr.md)**
 
 **One glance at your tmux status bar tells you what every [opencode](https://opencode.ai) agent is doing: working, blocked waiting for your input, or finished — no window-switching, no polling, no dependencies.**
