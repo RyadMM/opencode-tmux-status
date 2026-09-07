@@ -1,5 +1,5 @@
 # opencode-tmux-status
-<img width="460" height="30" alt="image" src="https://github.com/user-attachments/assets/37b0463c-c80b-4760-8a63-ec7f60be6fde" />
+<img width="436" height="30" alt="image" src="https://github.com/user-attachments/assets/e067765e-2e5e-4642-a09b-5397555ba0f0" />
 
 **[English](README.md)**
 
