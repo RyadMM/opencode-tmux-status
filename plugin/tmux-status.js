@@ -29,16 +29,25 @@ export const TmuxStatusPlugin = async ({ $ }) => {
   // full turn costs ~2-6 tiny tmux invocations total.
   const setState = async (state, why) => {
     if (state === last) return
-    last = state
     note(`${state} <- ${why}`)
     try {
-      await $`tmux set-option -w -t ${pane} @opencode-state ${state} \; set-option -w -t ${pane} @opencode-pane ${pane} \; set-option -w -t ${pane} @opencode-pid ${pid}`.nothrow().quiet()
-    } catch {}
+      const r = await $`tmux set-option -w -t ${pane} @opencode-state ${state} \; set-option -w -t ${pane} @opencode-pane ${pane} \; set-option -w -t ${pane} @opencode-pid ${pid}`.quiet()
+      if (r.exitCode !== 0) throw new Error(`tmux rc=${r.exitCode}`)
+      last = state // commit only after confirmed write
+    } catch (e) {
+      last = null  // reset so the next event retries
+      note(`write FAILED: ${e}`)
+    }
   }
 
   return {
     event: async ({ event }) => {
       const p = event.properties ?? {}
+      // permission.asked / session.error from ANY session in the process
+      // (including subagents) affect this window's turn — bypass the lock.
+      if (event.type === "permission.asked") return setState("wait", "permission.asked")
+      if (event.type === "permission.replied") return setState("busy", "permission.replied")
+      if (event.type === "session.error") return setState("error", "session.error")
       // Arm on the first user message: hidden sessions (title generation,
       // summaries, subagents) also emit events in-process, so track only the
       // session the user is actually talking to.
@@ -53,12 +62,8 @@ export const TmuxStatusPlugin = async ({ $ }) => {
       }
       if (DEBUG) note(`evt ${event.type}`)
       switch (event.type) {
-        case "permission.asked":
-          return setState("wait", "permission.asked")
         case "session.idle":
           return setState("done", "session.idle")
-        case "session.error":
-          return setState("error", "session.error")
         case "session.status": {
           const t = p.status?.type
           if (t === "busy") return setState("busy", "status.busy")
