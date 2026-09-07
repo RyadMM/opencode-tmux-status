@@ -39,8 +39,10 @@ Avec une Nerd Font installée, les glyphes unicode sont automatiquement remplac�
 Le jeu d'icônes est choisi au démarrage : glyphes Nerd Font si une est installée, unicode sinon. Forcez un jeu dans votre `tmux.conf` si la détection se trompe :
 
 ```tmux
-set -g @oc-icons "unicode"   # ou "nerd" / "ascii"
+set -g @oc-icons "unicode"   # ou "nerd" / "ascii" / "dot"
 ```
+
+**Le thème `dot`** est une option propre et minimaliste : un seul rond plein `●` dont la **couleur** exprime l'état — cyan = en cours, magenta = attend votre saisie, jaune = terminé, rouge = erreur. Un seul glyphe, rien à apprendre ; le rond change simplement de couleur.
 
 Les couleurs et glyphes vivent dans `~/.config/tmux/opencode-status.tmux` — les valeurs par défaut sont réglées pour la barre verte standard de tmux.
 

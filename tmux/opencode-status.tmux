@@ -13,6 +13,7 @@
 #   set -g @oc-icons "nerd"     # 󰐋 󰁨 󰄬 󰅛  (Nerd Font)
 #   set -g @oc-icons "unicode"  # ⚡ ⚑ ✓ ✗  (any modern terminal)
 #   set -g @oc-icons "ascii"    # ~ ? . !  (maximum compatibility)
+#   set -g @oc-icons "dot"      # ● ● ● ●  (minimal: colored circles)
 set -g @oc-busy  "󰐋"        # agent working
 set -g @oc-wait  "󰁨"        # needs your input
 set -g @oc-done  "󰄬"        # turn finished

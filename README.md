@@ -41,8 +41,10 @@ With a Nerd Font installed, the unicode glyphs are upgraded to matching Nerd Fon
 The icon set is chosen at startup: Nerd Font glyphs if one is installed, plain unicode otherwise. Pin a set in your `tmux.conf` if detection guesses wrong:
 
 ```tmux
-set -g @oc-icons "unicode"   # or "nerd" / "ascii"
+set -g @oc-icons "unicode"   # or "nerd" / "ascii" / "dot"
 ```
+
+**The `dot` theme** is a clean, minimal option: a single filled circle `●` whose **color** conveys the state — cyan = working, magenta = needs your input, yellow = done, red = error. One glyph, no glyphs to learn; the circle just changes color.
 
 Colors and glyphs live in `~/.config/tmux/opencode-status.tmux` — defaults are tuned for tmux's stock green bar.
 

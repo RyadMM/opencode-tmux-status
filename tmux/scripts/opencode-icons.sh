@@ -1,6 +1,6 @@
 #!/bin/sh
-# Resolves the @oc-* icon options from the icon set in @oc-icons.
-# Sets: "auto" (default) | "nerd" | "unicode" | "ascii"
+# Resolves the @oc-* icon + color options from the icon set in @oc-icons.
+# Sets: "auto" (default) | "nerd" | "unicode" | "ascii" | "dot"
 #
 # auto is best-effort: it looks for Nerd fonts installed on the system
 # (fc-list, then font directories), which usually — but not always — matches
@@ -21,13 +21,20 @@ if [ "$mode" = auto ]; then
   tmux set -g @oc-icons "$mode"
 fi
 
+# Colors per theme (tuned to stand out against tmux's stock green bar).
+# The dot theme uses a single filled circle; the color IS the state.
 case "$mode" in
-  nerd)    b="󰐋"; w="󰁨"; d="󰄬"; e="󰅛" ;;
-  ascii)   b="~";  w="?";  d=".";  e="!"  ;;
-  *)       b="⚡"; w="⚑";  d="✓";  e="✗"  ;;
+  nerd)  b="󰐋"; w="󰁨"; d="󰄬"; e="󰅛"; cb="colour231"; cw="colour201"; cd="colour16";  ce="colour196" ;;
+  dot)   b="●";  w="●";  d="●";  e="●";  cb="colour51";  cw="colour201"; cd="colour226"; ce="colour196" ;;
+  ascii) b="~";  w="?";  d=".";  e="!";  cb="colour231"; cw="colour201"; cd="colour16";  ce="colour196" ;;
+  *)     b="⚡"; w="⚑"; d="✓"; e="✗";  cb="colour231"; cw="colour201"; cd="colour16";  ce="colour196" ;;
 esac
 
 tmux set -g @oc-busy  "$b"
 tmux set -g @oc-wait  "$w"
 tmux set -g @oc-done  "$d"
 tmux set -g @oc-error "$e"
+tmux set -g @oc-c-busy  "$cb"
+tmux set -g @oc-c-wait  "$cw"
+tmux set -g @oc-c-done  "$cd"
+tmux set -g @oc-c-error "$ce"
