@@ -2,11 +2,6 @@
 
 **One glance at your tmux status bar tells you what every [opencode](https://opencode.ai) agent is doing: working, blocked waiting for your input, or finished — no window-switching, no polling, no dependencies.**
 
-```
-[󰐋] 1:api   [󰁨] 2:frontend   [󰄬] 3:docs   4:shell
-  working    NEEDS INPUT       done        untouched
-```
-
 ## Prerequisites
 
 - tmux ≥ 3.2
@@ -29,12 +24,14 @@ The installer copies the plugin to `~/.config/opencode/plugins/`, the tmux files
 
 Start opencode in any window and send it a message. Its window gets a live icon in the status bar:
 
-| Icon | Nerd Font | Unicode | ASCII | State | Meaning |
-|:----:|:---------:|:-------:|:-----:|-------|---------|
-| 󰐋 | `󰐋` | `⚡` | `~` | `busy` | Agent is working |
-| 󰁨 | `󰁨` | `⚑` | `?` | `wait` | Agent needs your input |
-| 󰄬 | `󰄬` | `✓` | `.` | `done` | Turn finished |
-| 󰅛 | `󰅛` | `✗` | `!` | `error` | Session error |
+| State | Meaning | Unicode | ASCII |
+|-------|---------|:-------:|:-----:|
+| `busy` | Agent is working | ⚡ | `~` |
+| `wait` | Agent needs your input | ⚑ | `?` |
+| `done` | Turn finished | ✓ | `.` |
+| `error` | Session error | ✗ | `!` |
+
+With a Nerd Font installed, the unicode glyphs are upgraded to matching Nerd Font icons automatically.
 
 The icon set is chosen at startup: Nerd Font glyphs if one is installed, plain unicode otherwise. Pin a set in your `tmux.conf` if detection guesses wrong:
 
